@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HabitFi: Habit Contracts as Financial Instruments</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>HabitFi: Habit Contracts as Financial Instruments</h1>
+    </header>
+    <main>
+        <section id="concept">
+            <h2>Concept Overview</h2>
+            <p>HabitFi demonstrates how habit formation can be tokenized into tradable financial instruments. Users create smart habit contracts that generate various financial products, creating a dynamic marketplace where personal growth meets investment opportunity.</p>
+        </section>
+        <section id="how-it-works">
+            <h2>How Habit Contracts Work</h2>
+            <ol>
+                <li>Users create a habit contract, specifying the habit, frequency, duration, and stake.</li>
+                <li>The contract is tokenized, creating a base Habit Token.</li>
+                <li>Various financial instruments are derived from the base token:
+                    <ul>
+                        <li>Futures: Bet on the long-term success of the habit</li>
+                        <li>Options: Right to buy/sell the habit token at a set price</li>
+                        <li>Swaps: Exchange the performance of one habit for another</li>
+                    </ul>
+                </li>
+                <li>Token value fluctuates based on habit adherence and market sentiment.</li>
+                <li>Traders can speculate on habit success, creating a liquid market.</li>
+            </ol>
+        </section>
+        <section id="create-contract">
+            <h2>Create a Habit Contract</h2>
+            <form id="habit-form">
+                <label for="habit">Habit Goal:</label>
+                <input type="text" id="habit" required>
+                <label for="frequency">Frequency (per week):</label>
+                <input type="number" id="frequency" min="1" max="7" required>
+                <label for="duration">Duration (in weeks):</label>
+                <input type="number" id="duration" min="1" max="52" required>
+                <label for="stake">Stake Amount (ETH):</label>
+                <input type="number" id="stake" min="0.1" step="0.1" required>
+                <button type="submit">Create Habit Contract & Generate Instruments</button>
+            </form>
+        </section>
+        <section id="financial-instruments">
+            <h2>Financial Instruments</h2>
+            <div id="base-token">
+                <h3>Base Habit Token</h3>
+                <ul id="token-list"></ul>
+            </div>
+            <div id="derivatives">
+                <h3>Derivatives</h3>
+                <div id="futures-contracts">
+                    <h4>Habit Futures</h4>
+                    <ul id="futures-list"></ul>
+                </div>
+                <div id="options-contracts">
+                    <h4>Habit Options</h4>
+                    <ul id="options-list"></ul>
+                </div>
+                <div id="swap-contracts">
+                    <h4>Habit Swaps</h4>
+                    <ul id="swaps-list"></ul>
+                </div>
+            </div>
+        </section>
+        <section id="trading-platform">
+            <h2>Trading Platform</h2>
+            <div id="order-book">
+                <h3>Order Book</h3>
+                <div id="bids"></div>
+                <div id="asks"></div>
+            </div>
+            <div id="trading-actions">
+                <h3>Execute Trade</h3>
+                <form id="trade-form">
+                    <label for="asset-type">Asset Type:</label>
+                    <select id="asset-type" required>
+                        <option value="token">Habit Token</option>
+                        <option value="future">Habit Future</option>
+                        <option value="option">Habit Option</option>
+                        <option value="swap">Habit Swap</option>
+                    </select>
+                    <label for="asset-id">Asset ID:</label>
+                    <input type="text" id="asset-id" required>
+                    <label for="trade-type">Trade Type:</label>
+                    <select id="trade-type" required>
+                        <option value="buy">Buy</option>
+                        <option value="sell">Sell</option>
+                    </select>
+                    <label for="trade-amount">Amount:</label>
+                    <input type="number" id="trade-amount" min="0.01" step="0.01" required>
+                    <label for="trade-price">Price (ETH):</label>
+                    <input type="number" id="trade-price" min="0.000001" step="0.000001" required>
+                    <button type="submit">Place Order</button>
+                </form>
+            </div>
+        </section>
+        <section id="market-simulation">
+            <h2>Market Simulation</h2>
+            <button id="run-simulation">Run Simulation</button>
+            <div id="simulation-results"></div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 HabitFi. All rights reserved. This is a demonstration of habit contracts as financial instruments.</p>
+    </footer>
+    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
