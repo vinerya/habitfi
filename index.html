@@ -4,111 +4,388 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HabitFi: Habit Contracts as Financial Instruments</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
         <h1>HabitFi: Habit Contracts as Financial Instruments</h1>
     </header>
+    <nav class="top-nav">
+        <div class="nav-links">
+            <button class="nav-item active" data-view="dashboard">Dashboard</button>
+            <button class="nav-item" data-view="create">Create Contract</button>
+            <button class="nav-item" data-view="trade">Trade</button>
+            <button class="nav-item" data-view="simulate">Simulate</button>
+        </div>
+        <div class="nav-stats">
+            <div class="stat-item">
+                <span class="stat-label">Portfolio Value</span>
+                <span class="stat-value">0.00 ETH</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Active Contracts</span>
+                <span class="stat-value">0</span>
+            </div>
+        </div>
+    </nav>
     <main>
-        <section id="concept">
-            <h2>Concept Overview</h2>
-            <p>HabitFi demonstrates how habit formation can be tokenized into tradable financial instruments. Users create smart habit contracts that generate various financial products, creating a dynamic marketplace where personal growth meets investment opportunity.</p>
-        </section>
-        <section id="how-it-works">
-            <h2>How Habit Contracts Work</h2>
-            <ol>
-                <li>Users create a habit contract, specifying the habit, frequency, duration, and stake.</li>
-                <li>The contract is tokenized, creating a base Habit Token.</li>
-                <li>Various financial instruments are derived from the base token:
-                    <ul>
-                        <li>Futures: Bet on the long-term success of the habit</li>
-                        <li>Options: Right to buy/sell the habit token at a set price</li>
-                        <li>Swaps: Exchange the performance of one habit for another</li>
-                    </ul>
-                </li>
-                <li>Token value fluctuates based on habit adherence and market sentiment.</li>
-                <li>Traders can speculate on habit success, creating a liquid market.</li>
-            </ol>
-        </section>
-        <section id="create-contract">
-            <h2>Create a Habit Contract</h2>
-            <form id="habit-form">
-                <label for="habit">Habit Goal:</label>
-                <input type="text" id="habit" required>
-                <label for="frequency">Frequency (per week):</label>
-                <input type="number" id="frequency" min="1" max="7" required>
-                <label for="duration">Duration (in weeks):</label>
-                <input type="number" id="duration" min="1" max="52" required>
-                <label for="stake">Stake Amount (ETH):</label>
-                <input type="number" id="stake" min="0.1" step="0.1" required>
-                <button type="submit">Create Habit Contract & Generate Instruments</button>
-            </form>
-        </section>
-        <section id="financial-instruments">
-            <h2>Financial Instruments</h2>
-            <div id="base-token">
-                <h3>Base Habit Token</h3>
-                <ul id="token-list"></ul>
+        <div id="dashboard-view" class="view active">
+            <div class="dashboard-grid">
+                <section class="dashboard-card">
+                    <h2>Quick Stats</h2>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="stat-title">Total Value Locked</span>
+                            <span class="stat-number">5.5 ETH</span>
+                            <span class="stat-change positive">+12.5%</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-title">Active Habits</span>
+                            <span class="stat-number">12</span>
+                            <span class="stat-change positive">+3</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-title">Success Rate</span>
+                            <span class="stat-number">87%</span>
+                            <span class="stat-change positive">+5.2%</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-title">Market Volume</span>
+                            <span class="stat-number">2.8 ETH</span>
+                            <span class="stat-change negative">-3.1%</span>
+                        </div>
+                    </div>
+                </section>
+                <section class="dashboard-card">
+                    <h2>Your Active Habits</h2>
+                    <div class="habits-list" id="active-habits">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <button class="action-button" onclick="document.querySelector('[data-view=create]').click()">
+                        <span class="button-icon">+</span>
+                        Create New Habit
+                    </button>
+                </section>
+                <section class="dashboard-card">
+                    <h2>Market Overview</h2>
+                    <div class="market-overview">
+                        <div class="chart-container">
+                            <canvas id="market-overview-chart"></canvas>
+                        </div>
+                        <div class="top-performers">
+                            <h3>Top Performing Habits</h3>
+                            <div class="performers-list" id="top-performers">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
-            <div id="derivatives">
-                <h3>Derivatives</h3>
-                <div id="futures-contracts">
-                    <h4>Habit Futures</h4>
-                    <ul id="futures-list"></ul>
+        </div>
+        <div id="create-view" class="view">
+            <div class="create-container">
+                <div class="create-steps">
+                    <div class="step active" data-step="1">
+                        <span class="step-number">1</span>
+                        <span class="step-text">Define Habit</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <span class="step-number">2</span>
+                        <span class="step-text">Set Parameters</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <span class="step-number">3</span>
+                        <span class="step-text">Review & Create</span>
+                    </div>
                 </div>
-                <div id="options-contracts">
-                    <h4>Habit Options</h4>
-                    <ul id="options-list"></ul>
-                </div>
-                <div id="swap-contracts">
-                    <h4>Habit Swaps</h4>
-                    <ul id="swaps-list"></ul>
-                </div>
-            </div>
-        </section>
-        <section id="trading-platform">
-            <h2>Trading Platform</h2>
-            <div id="order-book">
-                <h3>Order Book</h3>
-                <div id="bids"></div>
-                <div id="asks"></div>
-            </div>
-            <div id="trading-actions">
-                <h3>Execute Trade</h3>
-                <form id="trade-form">
-                    <label for="asset-type">Asset Type:</label>
-                    <select id="asset-type" required>
-                        <option value="token">Habit Token</option>
-                        <option value="future">Habit Future</option>
-                        <option value="option">Habit Option</option>
-                        <option value="swap">Habit Swap</option>
-                    </select>
-                    <label for="asset-id">Asset ID:</label>
-                    <input type="text" id="asset-id" required>
-                    <label for="trade-type">Trade Type:</label>
-                    <select id="trade-type" required>
-                        <option value="buy">Buy</option>
-                        <option value="sell">Sell</option>
-                    </select>
-                    <label for="trade-amount">Amount:</label>
-                    <input type="number" id="trade-amount" min="0.01" step="0.01" required>
-                    <label for="trade-price">Price (ETH):</label>
-                    <input type="number" id="trade-price" min="0.000001" step="0.000001" required>
-                    <button type="submit">Place Order</button>
+                <form id="habit-form" class="multi-step-form">
+                    <div class="form-step active" data-step="1">
+                        <h2>Define Your Habit</h2>
+                        <div class="form-group">
+                            <label for="habit">What habit do you want to build?</label>
+                            <input type="text" id="habit" required placeholder="e.g., Daily Meditation">
+                            <span class="help-text">Be specific and measurable</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Habit Category</label>
+                            <div class="category-grid">
+                                <label class="category-item">
+                                    <input type="radio" name="category" value="fitness">
+                                    <span class="category-content">
+                                        <i class="category-icon">🏃‍♂️</i>
+                                        <span>Fitness</span>
+                                    </span>
+                                </label>
+                                <label class="category-item">
+                                    <input type="radio" name="category" value="mindfulness">
+                                    <span class="category-content">
+                                        <i class="category-icon">🧘‍♂️</i>
+                                        <span>Mindfulness</span>
+                                    </span>
+                                </label>
+                                <label class="category-item">
+                                    <input type="radio" name="category" value="learning">
+                                    <span class="category-content">
+                                        <i class="category-icon">📚</i>
+                                        <span>Learning</span>
+                                    </span>
+                                </label>
+                                <label class="category-item">
+                                    <input type="radio" name="category" value="health">
+                                    <span class="category-content">
+                                        <i class="category-icon">🥗</i>
+                                        <span>Health</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="next-step">Continue</button>
+                        </div>
+                    </div>
+                    <div class="form-step" data-step="2">
+                        <h2>Set Your Parameters</h2>
+                        <div class="form-group">
+                            <label for="frequency">How often will you perform this habit?</label>
+                            <div class="frequency-selector">
+                                <button type="button" class="frequency-option" data-value="1">Once a week</button>
+                                <button type="button" class="frequency-option" data-value="3">3 times a week</button>
+                                <button type="button" class="frequency-option" data-value="5">5 times a week</button>
+                                <button type="button" class="frequency-option" data-value="7">Daily</button>
+                            </div>
+                            <input type="hidden" id="frequency" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="duration">Contract Duration</label>
+                            <div class="duration-slider">
+                                <input type="range" id="duration" min="1" max="52" value="4" class="slider">
+                                <div class="duration-display">
+                                    <span class="duration-value">4</span> weeks
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="stake">Stake Amount (ETH)</label>
+                            <div class="stake-input">
+                                <input type="number" id="stake" min="0.1" step="0.1" value="0.5" required>
+                                <div class="stake-suggestions">
+                                    <button type="button" class="stake-option" data-value="0.1">0.1</button>
+                                    <button type="button" class="stake-option" data-value="0.5">0.5</button>
+                                    <button type="button" class="stake-option" data-value="1.0">1.0</button>
+                                    <button type="button" class="stake-option" data-value="2.0">2.0</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="prev-step">Back</button>
+                            <button type="button" class="next-step">Continue</button>
+                        </div>
+                    </div>
+                    <div class="form-step" data-step="3">
+                        <h2>Review & Create</h2>
+                        <div class="contract-preview">
+                            <div class="preview-item">
+                                <span class="preview-label">Habit</span>
+                                <span class="preview-value" id="preview-habit"></span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Category</span>
+                                <span class="preview-value" id="preview-category"></span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Frequency</span>
+                                <span class="preview-value" id="preview-frequency"></span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Duration</span>
+                                <span class="preview-value" id="preview-duration"></span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Stake Amount</span>
+                                <span class="preview-value" id="preview-stake"></span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Estimated Return</span>
+                                <span class="preview-value success">+15-25% APY</span>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="prev-step">Back</button>
+                            <button type="submit" class="create-contract">Create Contract</button>
+                        </div>
+                    </div>
                 </form>
             </div>
-        </section>
-        <section id="market-simulation">
-            <h2>Market Simulation</h2>
-            <button id="run-simulation">Run Simulation</button>
-            <div id="simulation-results"></div>
-        </section>
+        </div>
+        <div id="trade-view" class="view">
+            <div class="trade-container">
+                <div class="trade-grid">
+                    <section class="trade-card market-overview">
+                        <div class="card-header">
+                            <h2>Market Overview</h2>
+                            <div class="market-filters">
+                                <button class="filter-btn active">All</button>
+                                <button class="filter-btn">Fitness</button>
+                                <button class="filter-btn">Mindfulness</button>
+                                <button class="filter-btn">Learning</button>
+                                <button class="filter-btn">Health</button>
+                            </div>
+                        </div>
+                        <div class="market-list" id="market-list">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </section>
+                    <section class="trade-card selected-asset">
+                        <div id="asset-details">
+                            <div class="asset-header">
+                                <h3>Selected Asset</h3>
+                                <span class="asset-id">TKN-DAI-f37mzb</span>
+                            </div>
+                            <div class="asset-info">
+                                <div class="info-group">
+                                    <span class="info-label">Current Price</span>
+                                    <span class="info-value">0.85 ETH</span>
+                                </div>
+                                <div class="info-group">
+                                    <span class="info-label">24h Change</span>
+                                    <span class="info-value positive">+5.2%</span>
+                                </div>
+                                <div class="info-group">
+                                    <span class="info-label">Volume</span>
+                                    <span class="info-value">1.2 ETH</span>
+                                </div>
+                            </div>
+                            <div class="price-chart">
+                                <canvas id="asset-price-chart"></canvas>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="trade-card order-book">
+                        <h3>Order Book</h3>
+                        <div class="order-book-container">
+                            <div id="asks" class="order-list asks">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                            <div class="spread-indicator">
+                                <span class="spread-label">Spread</span>
+                                <span class="spread-value">0.015 ETH</span>
+                            </div>
+                            <div id="bids" class="order-list bids">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </section>
+                    <section class="trade-card trade-form">
+                        <h3>Place Order</h3>
+                        <form id="trade-form">
+                            <div class="trade-type-toggle">
+                                <button type="button" class="toggle-btn active" data-type="buy">Buy</button>
+                                <button type="button" class="toggle-btn" data-type="sell">Sell</button>
+                            </div>
+                            <div class="form-group">
+                                <label for="trade-amount">Amount</label>
+                                <div class="input-with-max">
+                                    <input type="number" id="trade-amount" min="0.01" step="0.01" required>
+                                    <button type="button" class="max-btn">MAX</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="trade-price">Price (ETH)</label>
+                                <div class="input-with-suggestions">
+                                    <input type="number" id="trade-price" min="0.000001" step="0.000001" required>
+                                    <div class="price-suggestions">
+                                        <button type="button" class="price-option" data-modifier="-0.1%">-0.1%</button>
+                                        <button type="button" class="price-option" data-modifier="Market">Market</button>
+                                        <button type="button" class="price-option" data-modifier="+0.1%">+0.1%</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="order-summary">
+                                <div class="summary-item">
+                                    <span>Total</span>
+                                    <span class="total-amount">0.00 ETH</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Fee</span>
+                                    <span class="fee-amount">0.00 ETH</span>
+                                </div>
+                            </div>
+                            <button type="submit" class="place-order-btn">Place Order</button>
+                        </form>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <div id="simulate-view" class="view">
+            <div class="simulation-container">
+                <section class="simulation-card">
+                    <h2>Market Simulation</h2>
+                    <div class="simulation-controls">
+                        <div class="control-group">
+                            <label>Market Condition</label>
+                            <div class="condition-selector">
+                                <button class="condition-btn active" data-condition="bull">Bull Market</button>
+                                <button class="condition-btn" data-condition="bear">Bear Market</button>
+                                <button class="condition-btn" data-condition="volatile">Volatile</button>
+                                <button class="condition-btn" data-condition="stable">Stable</button>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>Time Period</label>
+                            <div class="period-selector">
+                                <button class="period-btn active" data-period="1w">1W</button>
+                                <button class="period-btn" data-period="1m">1M</button>
+                                <button class="period-btn" data-period="3m">3M</button>
+                                <button class="period-btn" data-period="6m">6M</button>
+                            </div>
+                        </div>
+                        <button id="run-simulation" class="run-btn">Run Simulation</button>
+                    </div>
+                    <div class="simulation-results">
+                        <div class="results-header">
+                            <h3>Simulation Results</h3>
+                            <div class="results-tabs">
+                                <button class="tab-btn active" data-tab="overview">Overview</button>
+                                <button class="tab-btn" data-tab="details">Details</button>
+                                <button class="tab-btn" data-tab="analysis">Analysis</button>
+                            </div>
+                        </div>
+                        <div class="results-content">
+                            <div class="chart-container">
+                                <canvas id="simulation-chart"></canvas>
+                            </div>
+                            <div class="metrics-grid">
+                                <div class="metric-card">
+                                    <span class="metric-label">Average Return</span>
+                                    <span class="metric-value">15.2%</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">Success Rate</span>
+                                    <span class="metric-value">78%</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">Volatility</span>
+                                    <span class="metric-value">Medium</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">Risk Score</span>
+                                    <span class="metric-value">6.5/10</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
     </main>
     <footer>
         <p>&copy; 2024 HabitFi. All rights reserved. This is a demonstration of habit contracts as financial instruments.</p>
     </footer>
-    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

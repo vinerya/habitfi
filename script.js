@@ -1,159 +1,468 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('habit-form');
-    const tokenList = document.getElementById('token-list');
-    const futuresList = document.getElementById('futures-list');
-    const optionsList = document.getElementById('options-list');
-    const swapsList = document.getElementById('swaps-list');
-    const tradeForm = document.getElementById('trade-form');
-    const simulationBtn = document.getElementById('run-simulation');
-
-    // Add test habit contracts
-    addTestHabitContracts();
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const habit = document.getElementById('habit').value;
-        const frequency = parseInt(document.getElementById('frequency').value);
-        const duration = parseInt(document.getElementById('duration').value);
-        const stake = parseFloat(document.getElementById('stake').value);
-
-        // Generate financial instruments
-        const tokenId = generateToken(habit, stake);
-        const futureId = generateFuture(tokenId, duration);
-        const optionId = generateOption(tokenId, duration);
-        const swapId = generateSwap(tokenId, duration);
-
-        // Add the new contract and financial instruments to the platform
-        addTokenToMarket(habit, frequency, duration, stake, tokenId);
-        addFutureToMarket(futureId, tokenId, duration);
-        addOptionToMarket(optionId, tokenId, duration);
-        addSwapToMarket(swapId, tokenId, duration);
-
-        // Update order book
-        updateOrderBook();
-
-        alert('Habit contract created and financial instruments generated successfully!');
-    });
-
-    tradeForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const assetType = document.getElementById('asset-type').value;
-        const assetId = document.getElementById('asset-id').value;
-        const tradeType = document.getElementById('trade-type').value;
-        const amount = parseFloat(document.getElementById('trade-amount').value);
-        const price = parseFloat(document.getElementById('trade-price').value);
-
-        executeTrade(assetType, assetId, tradeType, amount, price);
-    });
-
-    simulationBtn.addEventListener('click', runMarketSimulation);
+    // Initialize views
+    initializeViews();
+    
+    // Initialize form steps
+    initializeFormSteps();
+    
+    // Initialize interactive elements
+    initializeInteractions();
+    
+    // Add test data
+    addTestData();
 });
 
-function addTestHabitContracts() {
-    const testContracts = [
-        { habit: "Daily Meditation", frequency: 7, duration: 4, stake: 0.5 },
-        { habit: "Gym Workout", frequency: 3, duration: 12, stake: 1.2 },
-        { habit: "Read 30 Minutes", frequency: 5, duration: 8, stake: 0.8 },
-        { habit: "Learn a New Language", frequency: 4, duration: 24, stake: 2.5 },
-        { habit: "Healthy Meal Prep", frequency: 2, duration: 16, stake: 1.0 }
-    ];
+// View Management
+function initializeViews() {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const view = item.dataset.view;
+            switchView(view);
+        });
+    });
+}
 
-    testContracts.forEach((contract) => {
-        const tokenId = generateToken(contract.habit, contract.stake);
-        const futureId = generateFuture(tokenId, contract.duration);
-        const optionId = generateOption(tokenId, contract.duration);
-        const swapId = generateSwap(tokenId, contract.duration);
+function switchView(viewId) {
+    // Update navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.view === viewId);
+    });
+    
+    // Update view visibility
+    document.querySelectorAll('.view').forEach(view => {
+        view.classList.toggle('active', view.id === `${viewId}-view`);
+    });
+}
 
-        addTokenToMarket(contract.habit, contract.frequency, contract.duration, contract.stake, tokenId);
-        addFutureToMarket(futureId, tokenId, contract.duration);
-        addOptionToMarket(optionId, tokenId, contract.duration);
-        addSwapToMarket(swapId, tokenId, contract.duration);
+// Multi-step Form
+function initializeFormSteps() {
+    const form = document.getElementById('habit-form');
+    if (!form) return;
+
+    // Step navigation
+    document.querySelectorAll('.next-step').forEach(button => {
+        button.addEventListener('click', () => {
+            const currentStep = button.closest('.form-step');
+            const nextStep = currentStep.nextElementSibling;
+            if (nextStep && validateStep(currentStep)) {
+                updateFormStep(currentStep, nextStep);
+            }
+        });
     });
 
-    updateOrderBook();
+    document.querySelectorAll('.prev-step').forEach(button => {
+        button.addEventListener('click', () => {
+            const currentStep = button.closest('.form-step');
+            const prevStep = currentStep.previousElementSibling;
+            if (prevStep) {
+                updateFormStep(currentStep, prevStep);
+            }
+        });
+    });
+
+    // Form submission
+    form.addEventListener('submit', handleFormSubmit);
+
+    // Initialize interactive form elements
+    initializeFrequencySelector();
+    initializeDurationSlider();
+    initializeStakeOptions();
 }
 
-function addTokenToMarket(habit, frequency, duration, stake, tokenId) {
-    const tokenList = document.getElementById('token-list');
-    const listItem = document.createElement('li');
-    listItem.innerHTML = `
-        <strong>Token ID:</strong> ${tokenId}<br>
-        <strong>Habit:</strong> ${habit}<br>
-        <strong>Frequency:</strong> ${frequency} times/week<br>
-        <strong>Duration:</strong> ${duration} weeks<br>
-        <strong>Stake:</strong> ${stake} ETH<br>
-        <strong>Current Value:</strong> ${stake} ETH
-    `;
-    tokenList.appendChild(listItem);
+function validateStep(step) {
+    const inputs = step.querySelectorAll('input[required], select[required]');
+    let isValid = true;
+    inputs.forEach(input => {
+        if (!input.value) {
+            isValid = false;
+            input.classList.add('error');
+        }
+    });
+    return isValid;
 }
 
-function addFutureToMarket(futureId, tokenId, duration) {
-    const futuresList = document.getElementById('futures-list');
-    const listItem = document.createElement('li');
-    listItem.innerHTML = `
-        <strong>Future ID:</strong> ${futureId}<br>
-        <strong>Underlying Token:</strong> ${tokenId}<br>
-        <strong>Expiry:</strong> ${duration} weeks<br>
-        <strong>Current Price:</strong> ${(Math.random() * 0.1 + 0.9).toFixed(4)} ETH
-    `;
-    futuresList.appendChild(listItem);
-}
+function updateFormStep(currentStep, newStep) {
+    // Update steps
+    currentStep.classList.remove('active');
+    newStep.classList.add('active');
+    
+    // Update progress indicator
+    const stepNumber = newStep.dataset.step;
+    document.querySelectorAll('.step').forEach(step => {
+        step.classList.toggle('active', step.dataset.step <= stepNumber);
+    });
 
-function addOptionToMarket(optionId, tokenId, duration) {
-    const optionsList = document.getElementById('options-list');
-    const listItem = document.createElement('li');
-    const strikePrice = (Math.random() * 0.5 + 0.5).toFixed(4);
-    listItem.innerHTML = `
-        <strong>Option ID:</strong> ${optionId}<br>
-        <strong>Type:</strong> ${Math.random() > 0.5 ? 'Call' : 'Put'}<br>
-        <strong>Underlying Token:</strong> ${tokenId}<br>
-        <strong>Strike Price:</strong> ${strikePrice} ETH<br>
-        <strong>Expiry:</strong> ${duration} weeks<br>
-        <strong>Premium:</strong> ${(strikePrice * 0.1).toFixed(4)} ETH
-    `;
-    optionsList.appendChild(listItem);
-}
-
-function addSwapToMarket(swapId, tokenId, duration) {
-    const swapsList = document.getElementById('swaps-list');
-    const listItem = document.createElement('li');
-    listItem.innerHTML = `
-        <strong>Swap ID:</strong> ${swapId}<br>
-        <strong>Token 1:</strong> ${tokenId}<br>
-        <strong>Token 2:</strong> ETH<br>
-        <strong>Duration:</strong> ${duration} weeks<br>
-        <strong>Exchange Rate:</strong> 1 ${tokenId} = ${(Math.random() * 0.5 + 0.5).toFixed(4)} ETH
-    `;
-    swapsList.appendChild(listItem);
-}
-
-function updateOrderBook() {
-    const bids = document.getElementById('bids');
-    const asks = document.getElementById('asks');
-
-    bids.innerHTML = '<h4>Bids</h4>';
-    asks.innerHTML = '<h4>Asks</h4>';
-
-    for (let i = 0; i < 5; i++) {
-        const bidPrice = (1 - i * 0.01).toFixed(6);
-        const askPrice = (1 + i * 0.01).toFixed(6);
-        const volume = (Math.random() * 10).toFixed(2);
-
-        bids.innerHTML += `<p>${bidPrice} ETH - ${volume} units</p>`;
-        asks.innerHTML += `<p>${askPrice} ETH - ${volume} units</p>`;
+    // Update preview in final step
+    if (newStep.dataset.step === '3') {
+        updateContractPreview();
     }
 }
 
-function executeTrade(assetType, assetId, tradeType, amount, price) {
-    console.log(`Executing trade: ${tradeType} ${amount} of ${assetType} ${assetId} at ${price} ETH`);
-    alert(`Trade executed: ${tradeType} ${amount} of ${assetType} ${assetId} at ${price} ETH`);
+function initializeFrequencySelector() {
+    const options = document.querySelectorAll('.frequency-option');
+    const input = document.getElementById('frequency');
+
+    options.forEach(option => {
+        option.addEventListener('click', () => {
+            options.forEach(opt => opt.classList.remove('active'));
+            option.classList.add('active');
+            input.value = option.dataset.value;
+        });
+    });
+}
+
+function initializeDurationSlider() {
+    const slider = document.getElementById('duration');
+    const display = document.querySelector('.duration-value');
+
+    if (slider && display) {
+        slider.addEventListener('input', () => {
+            display.textContent = slider.value;
+        });
+    }
+}
+
+function initializeStakeOptions() {
+    const options = document.querySelectorAll('.stake-option');
+    const input = document.getElementById('stake');
+
+    options.forEach(option => {
+        option.addEventListener('click', () => {
+            input.value = option.dataset.value;
+        });
+    });
+}
+
+function updateContractPreview() {
+    document.getElementById('preview-habit').textContent = document.getElementById('habit').value;
+    document.getElementById('preview-category').textContent = document.querySelector('input[name="category"]:checked')?.value || 'Not selected';
+    document.getElementById('preview-frequency').textContent = `${document.getElementById('frequency').value} times per week`;
+    document.getElementById('preview-duration').textContent = `${document.getElementById('duration').value} weeks`;
+    document.getElementById('preview-stake').textContent = `${document.getElementById('stake').value} ETH`;
+}
+
+function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    // Get form values
+    const habit = document.getElementById('habit').value;
+    const category = document.querySelector('input[name="category"]:checked')?.value;
+    const frequency = document.getElementById('frequency').value;
+    const duration = document.getElementById('duration').value;
+    const stake = document.getElementById('stake').value;
+
+    // Create contract
+    const tokenId = generateToken(habit, stake);
+    const futureId = generateFuture(tokenId, duration);
+    const optionId = generateOption(tokenId, duration);
+    const swapId = generateSwap(tokenId, duration);
+
+    // Add to dashboard
+    const habitsList = document.getElementById('active-habits');
+    if (habitsList) {
+        const habitCard = document.createElement('div');
+        habitCard.className = 'habit-card';
+        habitCard.innerHTML = `
+            <div class="habit-header">
+                <h4>${habit}</h4>
+                <span class="streak">0 day streak</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress" style="width: 0%"></div>
+            </div>
+            <div class="habit-footer">
+                <span class="completion">0% Complete</span>
+                <button class="check-in-btn">Check In</button>
+            </div>
+        `;
+        habitsList.appendChild(habitCard);
+    }
+
+    // Update portfolio value
+    const portfolioValue = document.querySelector('.nav-stats .stat-value');
+    if (portfolioValue) {
+        const currentValue = parseFloat(portfolioValue.textContent);
+        portfolioValue.textContent = `${(currentValue + parseFloat(stake)).toFixed(2)} ETH`;
+    }
+
+    // Update active contracts count
+    const activeContracts = document.querySelector('.nav-stats .stat-value:last-child');
+    if (activeContracts) {
+        const currentCount = parseInt(activeContracts.textContent);
+        activeContracts.textContent = currentCount + 1;
+    }
+
+    // Show success message
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.textContent = 'Habit Contract created successfully!';
+    document.querySelector('.create-container').appendChild(successMessage);
+
+    // Switch to dashboard view after a delay
+    setTimeout(() => {
+        switchView('dashboard');
+        successMessage.remove();
+    }, 2000);
+}
+
+// Trading Platform
+function initializeInteractions() {
+    initializeTradeTypeToggle();
+    initializePriceSuggestions();
+    initializeMarketFilters();
+    initializeSimulationControls();
+    
+    // Update order book periodically
+    setInterval(updateOrderBook, 5000);
+}
+
+function initializeTradeTypeToggle() {
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            toggleBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+}
+
+function initializePriceSuggestions() {
+    const suggestions = document.querySelectorAll('.price-option');
+    const priceInput = document.getElementById('trade-price');
+
+    suggestions.forEach(option => {
+        option.addEventListener('click', () => {
+            const modifier = option.dataset.modifier;
+            if (modifier === 'Market') {
+                priceInput.value = getCurrentMarketPrice();
+            } else {
+                const currentPrice = parseFloat(priceInput.value) || getCurrentMarketPrice();
+                const percentage = parseFloat(modifier) / 100;
+                priceInput.value = (currentPrice * (1 + percentage)).toFixed(6);
+            }
+            updateOrderSummary();
+        });
+    });
+}
+
+function initializeMarketFilters() {
+    const filters = document.querySelectorAll('.filter-btn');
+    filters.forEach(filter => {
+        filter.addEventListener('click', () => {
+            filters.forEach(f => f.classList.remove('active'));
+            filter.classList.add('active');
+            filterMarketList(filter.textContent.toLowerCase());
+        });
+    });
+}
+
+function initializeSimulationControls() {
+    const conditions = document.querySelectorAll('.condition-btn');
+    const periods = document.querySelectorAll('.period-btn');
+    const tabs = document.querySelectorAll('.tab-btn');
+
+    [conditions, periods, tabs].forEach(buttons => {
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+    });
+
+    document.getElementById('run-simulation')?.addEventListener('click', runMarketSimulation);
+}
+
+// Test Data Generation
+function addTestData() {
+    // Add test habits to dashboard
+    addTestHabits();
+    
+    // Initialize charts
+    initializeCharts();
+    
+    // Update order book initially
     updateOrderBook();
 }
 
-// Financial instrument generation functions
+function addTestHabits() {
+    const habitsList = document.getElementById('active-habits');
+    if (!habitsList) return;
+
+    const testHabits = [
+        { name: 'Daily Meditation', streak: 7, progress: 75 },
+        { name: 'Gym Workout', streak: 3, progress: 60 },
+        { name: 'Read 30 Minutes', streak: 12, progress: 90 }
+    ];
+
+    testHabits.forEach(habit => {
+        const habitCard = document.createElement('div');
+        habitCard.className = 'habit-card';
+        habitCard.innerHTML = `
+            <div class="habit-header">
+                <h4>${habit.name}</h4>
+                <span class="streak">${habit.streak} day streak</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress" style="width: ${habit.progress}%"></div>
+            </div>
+            <div class="habit-footer">
+                <span class="completion">${habit.progress}% Complete</span>
+                <button class="check-in-btn">Check In</button>
+            </div>
+        `;
+        habitsList.appendChild(habitCard);
+    });
+}
+
+function initializeCharts() {
+    // Market Overview Chart
+    const marketCtx = document.getElementById('market-overview-chart')?.getContext('2d');
+    if (marketCtx) {
+        new Chart(marketCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Market Volume',
+                    data: [3.2, 2.8, 3.5, 4.1, 3.8, 3.1, 3.6],
+                    borderColor: 'rgb(79, 70, 229)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+
+    // Asset Price Chart
+    const assetCtx = document.getElementById('asset-price-chart')?.getContext('2d');
+    if (assetCtx) {
+        new Chart(assetCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 24}, (_, i) => i + ':00'),
+                datasets: [{
+                    label: 'Price',
+                    data: generatePriceData(24),
+                    borderColor: 'rgb(34, 197, 94)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+}
+
+function generatePriceData(points) {
+    const data = [];
+    let price = 0.85;
+    for (let i = 0; i < points; i++) {
+        price += (Math.random() - 0.5) * 0.02;
+        data.push(price);
+    }
+    return data;
+}
+
+function updateOrderBook() {
+    const generateOrders = (basePrice, count, type) => {
+        const orders = [];
+        let price = parseFloat(basePrice);
+        for (let i = 0; i < count; i++) {
+            const volume = (Math.random() * 5 + 0.1).toFixed(2);
+            const change = Math.random() * 0.001;
+            price = type === 'bid' ? price - change : price + change;
+            const formattedPrice = price.toFixed(6);
+            orders.push(`${formattedPrice} ETH - ${volume} units`);
+        }
+        return orders;
+    };
+
+    const basePrice = 0.85;
+    const bids = document.getElementById('bids');
+    const asks = document.getElementById('asks');
+
+    if (bids && asks) {
+        bids.innerHTML = generateOrders(basePrice, 5, 'bid')
+            .map(order => `<p>${order}</p>`)
+            .join('');
+        asks.innerHTML = generateOrders(basePrice, 5, 'ask')
+            .map(order => `<p>${order}</p>`)
+            .join('');
+    }
+}
+
+function getCurrentMarketPrice() {
+    return 0.85;
+}
+
+function updateOrderSummary() {
+    const amount = parseFloat(document.getElementById('trade-amount')?.value) || 0;
+    const price = parseFloat(document.getElementById('trade-price')?.value) || 0;
+    const total = amount * price;
+    const fee = total * 0.001;
+
+    document.querySelector('.total-amount').textContent = `${total.toFixed(6)} ETH`;
+    document.querySelector('.fee-amount').textContent = `${fee.toFixed(6)} ETH`;
+}
+
+function filterMarketList(category) {
+    // Implementation for filtering market list by category
+    console.log(`Filtering market list by: ${category}`);
+}
+
+function runMarketSimulation() {
+    const condition = document.querySelector('.condition-btn.active')?.dataset.condition;
+    const period = document.querySelector('.period-btn.active')?.dataset.period;
+    
+    // Implementation for market simulation based on selected condition and period
+    console.log(`Running simulation for ${condition} market over ${period}`);
+    
+    const simulationCtx = document.getElementById('simulation-chart')?.getContext('2d');
+    if (simulationCtx) {
+        new Chart(simulationCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 20}, (_, i) => i + 1),
+                datasets: [{
+                    label: 'Token Value',
+                    data: generateSimulationData(20, condition),
+                    borderColor: 'rgb(79, 70, 229)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+}
+
+function generateSimulationData(points, condition) {
+    const data = [];
+    let value = 1.0;
+    const volatility = condition === 'volatile' ? 0.1 : 0.03;
+    const trend = condition === 'bull' ? 0.02 : condition === 'bear' ? -0.02 : 0;
+
+    for (let i = 0; i < points; i++) {
+        value *= (1 + trend + (Math.random() - 0.5) * volatility);
+        data.push(value);
+    }
+    return data;
+}
+
+// Token Generation Functions
 function generateToken(habit, stake) {
-    return `TKN-${habit.slice(0, 3).toUpperCase()}-${Math.random().toString(36).substring(7)}`;
+    const prefix = habit.slice(0, 3).toUpperCase();
+    const randomId = Math.random().toString(36).substring(2, 8);
+    return `TKN-${prefix}-${randomId}`;
 }
 
 function generateFuture(tokenId, duration) {
@@ -166,69 +475,4 @@ function generateOption(tokenId, duration) {
 
 function generateSwap(tokenId, duration) {
     return `SWP-${tokenId}-${duration}W`;
-}
-
-// Market simulation function
-function runMarketSimulation() {
-    const simulationResults = document.getElementById('simulation-results');
-    simulationResults.innerHTML = '<h3>Market Simulation Results</h3>';
-
-    const scenarios = [
-        { name: "Bull Market", marketTrend: 0.2 },
-        { name: "Bear Market", marketTrend: -0.15 },
-        { name: "Volatile Market", marketTrend: 0 },
-        { name: "Stable Market", marketTrend: 0.05 }
-    ];
-
-    scenarios.forEach(scenario => {
-        simulationResults.innerHTML += `<h4>${scenario.name}</h4>`;
-        
-        const tokenValue = (1 + scenario.marketTrend + (Math.random() * 0.2 - 0.1)).toFixed(2);
-        const futurePrice = (tokenValue * (1 + Math.random() * 0.1)).toFixed(2);
-        const optionPremium = (tokenValue * 0.1 * (1 + scenario.marketTrend)).toFixed(2);
-        const swapRate = (1 / tokenValue).toFixed(4);
-
-        simulationResults.innerHTML += `
-            <p>Token Value: ${tokenValue} ETH</p>
-            <p>Future Price: ${futurePrice} ETH</p>
-            <p>Option Premium: ${optionPremium} ETH</p>
-            <p>Swap Rate: 1 Token = ${swapRate} ETH</p>
-        `;
-    });
-
-    updateVisualization(scenarios);
-}
-
-// Visualization update function
-function updateVisualization(scenarios) {
-    const ctx = document.getElementById('market-chart').getContext('2d');
-    
-    const data = {
-        labels: scenarios.map(s => s.name),
-        datasets: [{
-            label: 'Token Value',
-            data: scenarios.map(s => (1 + s.marketTrend + (Math.random() * 0.2 - 0.1)).toFixed(2)),
-            borderColor: 'rgb(75, 192, 192)',
-            tension: 0.1
-        },
-        {
-            label: 'Future Price',
-            data: scenarios.map(s => ((1 + s.marketTrend + (Math.random() * 0.2 - 0.1)) * (1 + Math.random() * 0.1)).toFixed(2)),
-            borderColor: 'rgb(255, 99, 132)',
-            tension: 0.1
-        }]
-    };
-
-    new Chart(ctx, {
-        type: 'line',
-        data: data,
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: false
-                }
-            }
-        }
-    });
 }
